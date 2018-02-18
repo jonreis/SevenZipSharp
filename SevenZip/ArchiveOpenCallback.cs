@@ -106,6 +106,9 @@ namespace SevenZip
 
         public int GetProperty(ItemPropId propId, ref PropVariant value)
         {
+           if(_fileInfo == null)
+              return 0;
+
             switch (propId)
             {
                 case ItemPropId.Name:
