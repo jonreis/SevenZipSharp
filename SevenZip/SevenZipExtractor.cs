@@ -53,7 +53,7 @@ namespace SevenZip
         private int _offset;
         private ArchiveOpenCallback _openCallback;
         private string _fileName;
-        private Stream _inStream;
+        private ArchiveEmulationStreamProxy _inStream;
         private long? _packedSize;
         private long? _unpackedSize;
         private uint? _filesCount;
@@ -383,9 +383,17 @@ namespace SevenZip
 
         private ArchiveOpenCallback GetArchiveOpenCallback()
         {
-            return _openCallback ?? (_openCallback = String.IsNullOrEmpty(Password)
-                                    ? new ArchiveOpenCallback(_fileName)
-                                    : new ArchiveOpenCallback(_fileName, Password));
+            if(_openCallback == null)
+            {
+               var fileName = _fileName;
+               if(string.IsNullOrEmpty(fileName))
+                 fileName = (_inStream.Source as FileStream)?.Name;
+
+                _openCallback = String.IsNullOrEmpty(Password)
+                             ? new ArchiveOpenCallback(_fileName ?? string.Empty)
+                             : new ArchiveOpenCallback(_fileName ?? string.Empty, Password);
+            }
+            return _openCallback;
         }
 
         /// <summary>
@@ -1080,10 +1088,12 @@ namespace SevenZip
             }
             try
             {
+                var archiveFileInfo = _archiveFileData[index];
                 using (var aec = GetArchiveExtractCallback(stream, (uint) index, indexes.Length))
                 {
                     try
                     {
+                        //aec.SetTotal(archiveFileInfo.Size > 0 ? archiveFileInfo.Size : 1);
                         CheckedExecute(
                             _archive.Extract(indexes, (uint) indexes.Length, 0, aec),
                             SevenZipExtractionFailedException.DEFAULT_MESSAGE, aec);
@@ -1104,6 +1114,8 @@ namespace SevenZip
             OnEvent(ExtractionFinished, EventArgs.Empty, false);
             ThrowUserException();
         }
+
+
         #endregion
 
         #region ExtractFiles overloads
