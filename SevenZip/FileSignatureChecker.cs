@@ -24,7 +24,7 @@ namespace SevenZip
     /// The signature checker class. Original code by Siddharth Uppal, adapted by Markhor.
     /// </summary>
     /// <remarks>Based on the code at http://blog.somecreativity.com/2008/04/08/how-to-check-if-a-file-is-compressed-in-c/#</remarks>
-    internal static class FileChecker
+    public static class FileChecker
     {
         private const int SIGNATURE_SIZE = 16;
         private const int SFX_SCAN_LENGTH = 256 * 1024;
