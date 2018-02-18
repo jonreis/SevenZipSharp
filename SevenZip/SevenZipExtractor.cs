@@ -1093,6 +1093,8 @@ namespace SevenZip
                 {
                     try
                     {
+                        if(!string.IsNullOrEmpty(Password))
+                          aec.Password = Password;
                         //aec.SetTotal(archiveFileInfo.Size > 0 ? archiveFileInfo.Size : 1);
                         CheckedExecute(
                             _archive.Extract(indexes, (uint) indexes.Length, 0, aec),

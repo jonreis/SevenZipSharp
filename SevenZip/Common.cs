@@ -58,7 +58,7 @@ namespace SevenZip
     /// </summary>
     public abstract class SevenZipBase : MarshalByRefObject
     {
-        private readonly string _password;
+        private string _password;
         private readonly bool _reportErrors;
         private readonly int _uniqueID;
         private static readonly List<int> Identificators = new List<int>();
@@ -279,6 +279,11 @@ Dispatcher == null
             {
                 return _password;
             }
+
+            set
+            {
+               _password = value;
+            }
         }
 
         /// <summary>
@@ -443,7 +448,7 @@ Dispatcher == null
 
     internal class CallbackBase : MarshalByRefObject
     {
-        private readonly string _password;
+        private string _password;
         private readonly bool _reportErrors;
         /// <summary>
         /// User exceptions thrown during the requested operations, for example, in events.
@@ -483,6 +488,11 @@ Dispatcher == null
             get
             {
                 return _password;
+            }
+
+            set
+            {
+               _password = value;
             }
         }
 
