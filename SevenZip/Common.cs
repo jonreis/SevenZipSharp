@@ -242,10 +242,8 @@ Dispatcher == null
         /// Initializes a new instance of the SevenZipBase class.
         /// </summary>
         protected SevenZipBase()
+          : this(null)
         {
-            _password = "";
-            _reportErrors = true;
-            _uniqueID = GetUniqueID();
         }
 
         /// <summary>
@@ -254,11 +252,7 @@ Dispatcher == null
         /// <param name="password">The archive password.</param>
         protected SevenZipBase(string password)
         {
-            if (String.IsNullOrEmpty(password))
-            {
-                throw new SevenZipException("Empty password was specified.");
-            }
-            _password = password;
+            _password = password ?? string.Empty;
             _reportErrors = true;
             _uniqueID = GetUniqueID();
         }
