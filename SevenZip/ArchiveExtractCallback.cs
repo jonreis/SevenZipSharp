@@ -301,6 +301,7 @@ namespace SevenZip
                     var destinationStream = GetStreamFunc(archiveItem);
                     if (destinationStream != null)
                     {
+                      _bytesCount = archiveItem.Size == 0 ? _extractor.PackedSize * 15 : (long)archiveItem.Size;
                       _fileStream = new OutStreamWrapper(destinationStream, false);
                       _fileStream.BytesWritten += IntEventArgsHandler;
                       outStream = _fileStream;
