@@ -185,6 +185,11 @@ namespace SevenZip
         /// </summary>
         public event EventHandler<FileOverwriteEventArgs> FileExists;
 
+        /// <summary>
+        /// Set a function to determine how/where the stream is generated
+        /// </summary>
+        public Func<ArchiveFileInfo, Stream> GetStreamFunc;
+
         private void OnFileExists(FileOverwriteEventArgs e)
         {
             if (FileExists != null)
@@ -288,6 +293,22 @@ namespace SevenZip
             if (askExtractMode == AskMode.Extract)
             {
                 var fileName = _directory;
+                if (GetStreamFunc != null)
+                {
+                  var archiveItem = _extractor.ArchiveFileData[_currentIndex];
+                  if (!archiveItem.IsDirectory)
+                  {
+                    var destinationStream = GetStreamFunc(archiveItem);
+                    if (destinationStream != null)
+                    {
+                      _fileStream = new OutStreamWrapper(destinationStream, false);
+                      _fileStream.BytesWritten += IntEventArgsHandler;
+                      outStream = _fileStream;
+                    }
+                  }
+                  goto FileExtractionStartedLabel;
+                }
+
                 if (!_fileIndex.HasValue)
                 {
                     #region Extraction to a file
@@ -411,7 +432,6 @@ namespace SevenZip
                 else
                 {
                     #region Extraction to a stream
-
                     if (index == _fileIndex)
                     {
                         outStream = _fileStream;

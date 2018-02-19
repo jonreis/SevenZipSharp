@@ -390,8 +390,8 @@ namespace SevenZip
                  fileName = (_inStream.Source as FileStream)?.Name;
 
                 _openCallback = String.IsNullOrEmpty(Password)
-                             ? new ArchiveOpenCallback(_fileName ?? string.Empty)
-                             : new ArchiveOpenCallback(_fileName ?? string.Empty, Password);
+                             ? new ArchiveOpenCallback(fileName ?? string.Empty)
+                             : new ArchiveOpenCallback(fileName ?? string.Empty, Password);
             }
             return _openCallback;
         }
@@ -1076,7 +1076,7 @@ namespace SevenZip
                 }
             }
             var indexes = new[] {(uint) index};
-            if (_isSolid.Value)
+            if (_isSolid == true)
             {
                 indexes = SolidIndexes(indexes);
             }
@@ -1088,14 +1088,13 @@ namespace SevenZip
             }
             try
             {
-                var archiveFileInfo = _archiveFileData[index];
                 using (var aec = GetArchiveExtractCallback(stream, (uint) index, indexes.Length))
                 {
                     try
                     {
                         if(!string.IsNullOrEmpty(Password))
                           aec.Password = Password;
-                        //aec.SetTotal(archiveFileInfo.Size > 0 ? archiveFileInfo.Size : 1);
+
                         CheckedExecute(
                             _archive.Extract(indexes, (uint) indexes.Length, 0, aec),
                             SevenZipExtractionFailedException.DEFAULT_MESSAGE, aec);
@@ -1117,8 +1116,7 @@ namespace SevenZip
             ThrowUserException();
         }
 
-
-        #endregion
+    #endregion
 
         #region ExtractFiles overloads
         /// <summary>
@@ -1176,7 +1174,7 @@ namespace SevenZip
             var origIndexes = new List<uint>(uindexes);
             origIndexes.Sort();
             uindexes = origIndexes.ToArray();
-            if (_isSolid.Value)
+            if (_isSolid == true)
             {
                 uindexes = SolidIndexes(uindexes);
             }
@@ -1392,8 +1390,66 @@ namespace SevenZip
                 _opened = false;
             }
             ThrowUserException();
-        }        
-        #endregion
+        }
+
+        /// <summary>
+        /// Unpacks the whole archive to the specified directory.
+        /// </summary>
+        /// <param name="getStreamFunc">A function that will handle the creation of streams that will be populated.</param>
+        public void ExtractArchive(Func<ArchiveFileInfo, Stream> getStreamFunc)
+        {
+          DisposedCheck();
+          ClearExceptions();
+          InitArchiveFileData(false);
+          try
+          {
+            IInStream archiveStream;
+            using ((archiveStream = GetArchiveStream(true)) as IDisposable)
+            {
+              var openCallback = GetArchiveOpenCallback();
+              if (!OpenArchive(archiveStream, openCallback))
+              {
+                return;
+              }
+              try
+              {
+                using (var aec = GetArchiveExtractCallback("", (int)_filesCount, null))
+                {
+                  try
+                  {
+                    aec.GetStreamFunc = getStreamFunc;
+                    CheckedExecute(
+                        _archive.Extract(null, UInt32.MaxValue, 0, aec),
+                        SevenZipExtractionFailedException.DEFAULT_MESSAGE, aec);
+                    OnEvent(ExtractionFinished, EventArgs.Empty, false);
+                  }
+                  finally
+                  {
+                    FreeArchiveExtractCallback(aec);
+                  }
+                }
+              }
+              catch (Exception)
+              {
+                if (openCallback.ThrowException())
+                {
+                  throw;
+                }
+              }
+            }
+          }
+          finally
+          {
+            if (_archive != null)
+            {
+              _archive.Close();
+            }
+            _archiveStream = null;
+            _opened = false;
+          }
+          ThrowUserException();
+        }
+    #endregion
 
 #endif
 
