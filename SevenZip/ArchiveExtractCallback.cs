@@ -57,7 +57,7 @@ namespace SevenZip
         private bool _directoryStructure;
         private int _currentIndex;
 #if !WINCE
-        const int MEMORY_PRESSURE = 64 * 1024 * 1024; //64mb seems to be the maximum value
+        const int MEMORY_PRESSURE = 100 * 1024 * 1024; //64mb seems to be the maximum value
 #endif
         #region Constructors
 
@@ -510,8 +510,11 @@ namespace SevenZip
                     }
                     catch (ObjectDisposedException) { }
                     _fileStream = null;
-                    GC.Collect();
-                    GC.WaitForPendingFinalizers();
+                    // when processing an archive with many small files 
+                    // over 72% of the time is spent in the garbage collector
+                    // resulting in horrible performance
+                    //GC.Collect();
+                    //GC.WaitForPendingFinalizers();
                 }
                 var iea = new FileInfoEventArgs(
                     _extractor.ArchiveFileData[_currentIndex], PercentDoneEventArgs.ProducePercentDone(_doneRate));                
