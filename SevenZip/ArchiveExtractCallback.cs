@@ -448,6 +448,7 @@ namespace SevenZip
 
             FileExtractionStartedLabel:
                 _doneRate += 1.0f / _filesCount;
+                _bytesWritten = _bytesWrittenOld = 0;
                 var iea = new FileInfoEventArgs(
                     _extractor.ArchiveFileData[(int)index], PercentDoneEventArgs.ProducePercentDone(_doneRate));
                 OnFileExtractionStarted(iea);
